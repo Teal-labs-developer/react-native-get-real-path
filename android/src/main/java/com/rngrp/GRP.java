@@ -69,7 +69,7 @@ public class GRP extends ReactContextBaseJavaModule {
 
           callback.invoke(null, getDataColumn(context, contentUri, selection, selectionArgs));
         } else if (isDownloadsDocument(uri)) {
-
+           System.out.println("In Download");
           final String id = DocumentsContract.getDocumentId(uri);
           final Uri contentUri = ContentUris.withAppendedId(
                   Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
@@ -77,6 +77,7 @@ public class GRP extends ReactContextBaseJavaModule {
           callback.invoke(null, getDataColumn(context, contentUri, null, null));
           ;
         } else if (isExternalStorageDocument(uri)) {
+          System.out.println("In External");
           final String docId = DocumentsContract.getDocumentId(uri);
           final String[] split = docId.split(":");
           final String type = split[0];
@@ -94,12 +95,18 @@ public class GRP extends ReactContextBaseJavaModule {
             callback.invoke(null, path);
           }
         }
+        else{
+          callback.invoke(null, getDataColumn(context, uri, null, null));
+        }
       }
       else if ("content".equalsIgnoreCase(uri.getScheme())) {
         callback.invoke(null,getDataColumn(context, uri, null, null));
       }
       else if ("file".equalsIgnoreCase(uri.getScheme())) {
         callback.invoke(null, uri.getPath());
+      }
+      else{
+        callback.invoke(null, getDataColumn(context, uri, null, null));
       }
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -123,17 +130,10 @@ public class GRP extends ReactContextBaseJavaModule {
     Cursor cursor = null;
     final String column = "_data";
     final String[] projection = {column, "_display_name"};
-
     try {
       /* get `_data` */
       cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
       if (cursor != null && cursor.moveToFirst()) {
-        final int column_index = cursor.getColumnIndexOrThrow(column);
-        /* bingo! */
-        final String filepath = cursor.getString(column_index);
-        return filepath;
-      }
-    } catch (Exception e) {
       final int column_index = cursor.getColumnIndexOrThrow("_display_name");
       final String displayName = cursor.getString(column_index);
 
@@ -160,25 +160,32 @@ public class GRP extends ReactContextBaseJavaModule {
             output.close();
           }
         } catch (Exception e1a) {
+          e1a.printStackTrace();
           //
         } finally {
           try {
             input.close();
           } catch (IOException e1b) {
             //
+            e1b.printStackTrace();
           }
         }
       } catch (FileNotFoundException e2) {
         //
+        e2.printStackTrace();
       } finally {
         if (input != null) {
           try {
             input.close();
           } catch (IOException e3) {
             //
+            e3.printStackTrace();
           }
         }
       }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     } finally {
       if (cursor != null)
         cursor.close();
